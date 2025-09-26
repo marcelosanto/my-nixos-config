@@ -40,8 +40,7 @@
               helix         # Helix Editor (hx)
             ];
 
-            # Optionally enable nix-ld for non-Nix binaries
-            programs.nix-ld.enable = true;
+            
           };
         }
       ];
