@@ -69,7 +69,6 @@
               python312Packages.python-lsp-server
               black # Formatter de Python
               pyright
-              pylsp
               rustfmt
               stylua
             ];
