@@ -25,6 +25,22 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
+    # 1. Defina seus Nameservers preferenciais.
+  # Exemplo: Cloudflare (1.1.1.1) e Google (8.8.8.8)
+  networking.nameservers = [ 
+    "1.1.1.1" 
+    "1.0.0.1" 
+    "8.8.8.8" 
+  ];
+
+  # 2. Diga ao NetworkManager para não gerenciar (sobrescrever) o DNS.
+  # Isso impede que ele modifique /etc/resolv.conf.
+  networking.networkmanager.dns = "none";
+
+  # 3. Desative o resolvedor interno do systemd (muitas vezes é o que sobrescreve).
+  # Se você não o tem habilitado, esta linha não fará nada, mas é uma boa prática.
+  services.resolved.enable = false;
+
   # Set your time zone.
   time.timeZone = "America/Sao_Paulo";
 
@@ -107,7 +123,7 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # 1. Habilitar OpenGL/DRI
-  hardware.opengl.enable = true;
+  hardware.graphics.enable = true;
 
   # 2. Configurar o driver NVIDIA
   services.xserver.videoDrivers = [ "nvidia" ];

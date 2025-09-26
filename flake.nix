@@ -24,28 +24,21 @@
             android_sdk.accept_license = true;
           };
 
-# Habilitar o Flatpak
+          # Habilitar o Flatpak
           services.flatpak.enable = true;
 
           # Adicionar o Flatpak aos pacotes do sistema
           environment.systemPackages = with pkgs; [
             flatpak
             xdg-desktop-portal
+            kdePackages.xdg-desktop-portal-kde
             xdg-desktop-portal-gtk # Para melhor integração com ambientes gráficos
           ];
 
+         
+
         })
 
-	# Habilitar o Flatpak
-#          services.flatpak.enable = true;
-
-          # Adicionar o Flatpak aos pacotes do sistema
- #         environment.systemPackages = with nixpkgs.legacyPackages."x86_64-linux"; [
-   #         flatpak
-  #          xdg-desktop-portal
-    #        xdg-desktop-portal-gtk # Para melhor integração com ambientes gráficos
-     ##     ];
-       # })
 
         home-manager.nixosModules.home-manager {
           home-manager.useGlobalPkgs = true;
@@ -64,6 +57,9 @@
               vscodium
               zed-editor
               helix
+              genymotion
+              rust-analyzer
+              lldb
             ];
           };
         }
