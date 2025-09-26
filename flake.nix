@@ -66,6 +66,12 @@
               lua-language-server
               nerd-fonts.fira-code
               nerd-fonts.droid-sans-mono
+              python312Packages.python-lsp-server
+              black # Formatter de Python
+              pyright
+              pylsp
+              rustfmt
+              stylua
             ];
           };
         }
