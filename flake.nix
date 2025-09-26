@@ -60,6 +60,12 @@
               genymotion
               rust-analyzer
               lldb
+              fira-code
+              jetbrains-mono
+              hack-font
+              lua-language-server
+              nerd-fonts.fira-code
+              nerd-fonts.droid-sans-mono
             ];
           };
         }
