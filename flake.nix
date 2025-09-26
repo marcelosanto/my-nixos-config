@@ -9,38 +9,62 @@
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs: {
     nixosConfigurations."nixos" = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux"; # Adjust if your architecture differs
+      system = "x86_64-linux";
 
       modules = [
-        # Your existing configuration files
         ./configuration.nix
         ./hardware-configuration.nix
 
-        # Allow unfree packages at the system level
-        {
-          nixpkgs.config.allowUnfree = true;
-        }
+        ({ pkgs, ... }: {
+          nixpkgs.config = {
+            allowUnfree = true;
+            allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+              "android-studio"
+            ];
+            android_sdk.accept_license = true;
+          };
 
-        # Home Manager configuration
+# Habilitar o Flatpak
+          services.flatpak.enable = true;
+
+          # Adicionar o Flatpak aos pacotes do sistema
+          environment.systemPackages = with pkgs; [
+            flatpak
+            xdg-desktop-portal
+            xdg-desktop-portal-gtk # Para melhor integração com ambientes gráficos
+          ];
+
+        })
+
+	# Habilitar o Flatpak
+#          services.flatpak.enable = true;
+
+          # Adicionar o Flatpak aos pacotes do sistema
+ #         environment.systemPackages = with nixpkgs.legacyPackages."x86_64-linux"; [
+   #         flatpak
+  #          xdg-desktop-portal
+    #        xdg-desktop-portal-gtk # Para melhor integração com ambientes gráficos
+     ##     ];
+       # })
+
         home-manager.nixosModules.home-manager {
-          home-manager.useGlobalPkgs = true; # Use the same pkgs as the system
-          home-manager.users.marcelo = {
-            home.stateVersion = "24.05"; # Match your NixOS version
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.marcelo = { pkgs, ... }: {
+            home.stateVersion = "25.05";
+            fonts.fontconfig.enable = false; # Disable fontconfig to avoid potential issues
 
-            # User-specific packages
-            home.packages = with nixpkgs.legacyPackages.x86_64-linux; [
+            home.packages = with pkgs; [
               python3
               lua
               rustc
               cargo
-              jdk17_headless # Java Development Kit 17 (headless for Gradle)
-              android-studio # IDE Android Studio
-              vscodium      # Codium (free version of VS Code)
-              zed-editor    # Zed IDE
-              helix         # Helix Editor (hx)
+              jdk17_headless
+              android-studio
+              vscodium
+              zed-editor
+              helix
             ];
-
-            
           };
         }
       ];
