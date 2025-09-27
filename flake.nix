@@ -7,12 +7,10 @@
     
     # Home Manager (para configurações do usuário)
     home-manager.url = "github:nix-community/home-manager";
-    # Garante que o Home Manager use o mesmo conjunto de pacotes que o sistema
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs: {
-    # Define a configuração do sistema (seu único host 'nixos')
     nixosConfigurations."nixos" = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
 
@@ -21,11 +19,10 @@
         ./configuration.nix
         ./hardware-configuration.nix
 
-        # Módulo de sistema para pacotes, flatpak, etc.
+        # MÓDULO DE SISTEMA (Flatpak, Unfree, Pacotes Globais)
         ({ pkgs, ... }: {
           nixpkgs.config = {
             allowUnfree = true;
-            # Permite apenas o android-studio, mantendo outros pacotes restritos
             allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
               "android-studio"
             ];
@@ -34,14 +31,18 @@
 
           # Habilitar o Flatpak
           services.flatpak.enable = true;
-
-          # Adicionar o Flatpak aos pacotes do sistema
           environment.systemPackages = with pkgs; [
             flatpak
             xdg-desktop-portal
             kdePackages.xdg-desktop-portal-kde
             xdg-desktop-portal-gtk
           ];
+          
+          # [ADICIONADO] Garante que o Zsh esteja no sistema
+          environment.systemPackages = [ pkgs.zsh ];
+
+          # [OPCIONAL] Define o shell padrão do usuário no sistema
+          users.users.marcelo.shell = pkgs.zsh;
         })
 
         # MÓDULO HOME MANAGER
@@ -56,8 +57,7 @@
           # Configurações Específicas para o usuário 'marcelo'
           home-manager.users.marcelo = { pkgs, ... }: {
             home.stateVersion = "25.05";
-            # Desabilitar o fontconfig é incomum, mas mantido conforme seu pedido
-            fonts.fontconfig.enable = false; 
+            fonts.fontconfig.enable = false;
             
             # === CONFIGURAÇÃO DO ZSH E POWERLEVEL10K (CORRIGIDA) ===
             programs.zsh = {
@@ -70,7 +70,7 @@
               ];
             };
 
-            # Powerlevel10k é um módulo de programa de nível superior
+            # Powerlevel10k (Chave de programa de nível superior)
             programs.powerlevel10k.enable = true;
             
             # === PACOTES DE DESENVOLVIMENTO (home.packages) ===
