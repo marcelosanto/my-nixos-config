@@ -29,7 +29,7 @@
 
           services.flatpak.enable = true;
 
-          # [CORRIGIDO] Lista ÚNICA de environment.systemPackages
+          # Lista ÚNICA de environment.systemPackages
           environment.systemPackages = with pkgs; [
             flatpak
             xdg-desktop-portal
@@ -38,10 +38,8 @@
             zsh 
           ];
           
-          # 🚀 CORREÇÃO DA ASSERÇÃO: Ativa o Zsh no nível do sistema
           programs.zsh.enable = true;
 
-          # Configuração do Usuário Marcelo no Sistema
           users.users.marcelo = {
             isNormalUser = true;
             extraGroups = [ "wheel" "networkmanager" ];
@@ -59,13 +57,6 @@
           
           # Configurações Específicas para o usuário 'marcelo'
           home-manager.users.marcelo = { config, pkgs, ... }: 
-          
-          # 🚀 SOLUÇÃO DE ESCOPO: Usa 'let' e 'builtins.toString' para resolver o caminho
-          let
-            p10k = builtins.toString pkgs.zsh-powerlevel10k;
-            zshAutosuggestions = builtins.toString pkgs.zsh-autosuggestions;
-            zshSyntaxHighlighting = builtins.toString pkgs.zsh-syntax-highlighting;
-          in
           {
             home.stateVersion = "25.05";
             fonts.fontconfig.enable = false;
@@ -73,28 +64,25 @@
             # === CONFIGURAÇÃO DO ZSH E PLUGINS ===
             programs.zsh = {
               enable = true;
-              # Deixa a lista de plugins vazia para evitar o erro de 'submodule'
-              plugins = [ ]; 
               
-              # Carregamento explícito usando as variáveis convertidas para string
-              initExtra = ''
-                # Carrega o plugin de Highlight
-                source ${zshSyntaxHighlighting}/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-                
-                # Carrega o plugin de Autosuggestions
-                source ${zshAutosuggestions}/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-                
-                # Carrega o Powerlevel10k
-                if [[ -f ${p10k}/share/zsh-theme-powerlevel10k/powerlevel10k.zsh ]]; then
-                    source ${p10k}/share/zsh-theme-powerlevel10k/powerlevel10k.zsh
-                fi
-              '';
+              # ✅ CORREÇÃO: Usa a lista de plugins do Home Manager.
+              # O Home Manager cuidará da instalação e do 'sourcing' correto.
+              plugins = [ 
+                { name = "zsh-autosuggestions"; package = pkgs.zsh-autosuggestions; }
+                { name = "zsh-syntax-highlighting"; package = pkgs.zsh-syntax-highlighting; }
+              ];
+              
+              # Apenas para garantir que o Home Manager não exclua nada
+              initContent = ""; 
             };
             
+            # ✅ CORREÇÃO: Usa o módulo dedicado do Powerlevel10k
+            programs.powerlevel10k.enable = true;
+            
             # === PACOTES DE DESENVOLVIMENTO ===
+            # Removido zsh-powerlevel10k, zsh-autosuggestions e zsh-syntax-highlighting desta lista,
+            # pois eles serão instalados pelos módulos programs.zsh e programs.powerlevel10k.
             home.packages = with pkgs; [
-              zsh-powerlevel10k # Continua na lista para ser instalado
-              
               python3
               lua
               rustc
