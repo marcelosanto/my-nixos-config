@@ -2,13 +2,18 @@
 # your system. Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   # ====================================================================
   # CONFIGURAÇÃO DE HARDWARE E SISTEMA DE ARQUIVOS
@@ -19,13 +24,13 @@
   fileSystems."/mnt/GAMES" = {
     device = "UUID=2DBB801B3AC731E7";
     fsType = "ntfs3"; # Usando o driver moderno ntfs3
-    
+
     # Permissões totais para o usuário marcelo (assumindo UID=1000, GID=100)
-    options = [ 
+    options = [
       "defaults"
       "nofail"
-      "uid=1000"  # Substitua pelo seu UID real (id -u marcelo)
-      "gid=100"   # Substitua pelo seu GID real (id -g marcelo)
+      "uid=1000" # Substitua pelo seu UID real (id -u marcelo)
+      "gid=100" # Substitua pelo seu GID real (id -g marcelo)
       "umask=002" # Permite r/w para dono e grupo
     ];
   };
@@ -43,14 +48,14 @@
   # ====================================================================
   # CONFIGURAÇÃO DE REDE, LOCALIZAÇÃO E DISPLAY
   # ====================================================================
-  
+
   networking.hostName = "nixos";
   networking.networkmanager.enable = true;
-  
-  networking.nameservers = [ 
-    "1.1.1.1" 
-    "1.0.0.1" 
-    "8.8.8.8" 
+
+  networking.nameservers = [
+    "1.1.1.1"
+    "1.0.0.1"
+    "8.8.8.8"
   ];
 
   networking.networkmanager.dns = "none";
@@ -85,7 +90,7 @@
   # ====================================================================
   # GRÁFICOS, ÁUDIO E USUÁRIO
   # ====================================================================
-  
+
   # Áudio Pipewire
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -102,7 +107,7 @@
 
   hardware.nvidia = {
     modesetting.enable = true;
-    open = false; 
+    open = false;
   };
 
   programs.nix-ld.enable = true;
@@ -111,7 +116,10 @@
   users.users.marcelo = {
     isNormalUser = true;
     description = "Marcelo Santos";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
     packages = with pkgs; [
       kdePackages.kate
     ];
@@ -119,14 +127,17 @@
 
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "marcelo";
-  
+
   # ====================================================================
   # PACOTES GLOBAIS E FLAKES
   # ====================================================================
-  
+
   programs.firefox.enable = true;
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   # Lista CORRIGIDA de systemPackages: SÓ FERRAMENTAS GLOBAIS
   environment.systemPackages = with pkgs; [
