@@ -87,34 +87,82 @@
             };
 
             home.packages = with pkgs; [
+              # ====================================================================
+              # 🐚 SHELL & PROMPT (ZSH)
+              # ====================================================================
+              
+              # Ferramenta principal para gerenciar toolchains Rust (compilador, cargo)
+              rustup
+              
+              # Tema principal do Zsh (requer Nerd Font)
               zsh-powerlevel10k
-              zsh-autosuggestions
-              zsh-syntax-highlighting
-              oh-my-zsh
-              python3
-              lua
-              #rustc
-              #cargo
-              jdk17_headless
-              android-studio
-              vscodium
-              zed-editor
-              helix
-              genymotion
-              #rust-analyzer
-              lldb
+              
+              # Plugins Essenciais para Zsh
+              zsh-autosuggestions        # Sugestões de comandos baseadas no histórico
+              zsh-syntax-highlighting    # Colore comandos digitados para melhor legibilidade
+              
+              # Framework opcional (pode ser removido se apenas os plugins acima forem usados)
+              oh-my-zsh                  
+              
+              # ====================================================================
+              # 💻 EDITORES & AMBIENTES DE DESENVOLVIMENTO
+              # ====================================================================
+              
+              # Editores de Código
+              vscodium                   # Editor VS Code (Open Source)
+              zed-editor                 # Editor Moderno (opcional, requer compilação específica)
+              helix                      # Editor de Terminal Modal
+              
+              # Plataformas & SDKs
+              jdk17_headless             # Kit de desenvolvimento Java (para Android Studio, sem UI)
+              android-studio             # IDE principal para desenvolvimento Android
+              genymotion                 # Emulador Android (para testes)
+              lldb                       # Debugger de baixo nível (necessário para Rust/C/C++)
+              
+              # ====================================================================
+              # 🛠️ TOOLCHAINS & DEPENDÊNCIAS NATIVAS (Crucial para cargo/Rust)
+              # ====================================================================
+              
+              # Compilador C/C++ (Necessário para a compilação de muitas libs nativas Rust)
+              gcc
+              
+              # Bibliotecas C/C++ (Soluciona erros comuns como 'openssl-sys')
+              openssl                    # Biblioteca criptográfica (OpenSSL)
+              pkg-config                 # Auxilia compiladores a encontrar flags e bibliotecas nativas
+              
+              # Pacotes Rust (Descomentar se não usar 'rustup' para instalar)
+              # rustc
+              # cargo
+              
+              # ====================================================================
+              # 🌐 LSPs & FORMATTERS (Para Helix, VSCodium, Zed)
+              # ====================================================================
+              
+              # LSPs (Language Server Protocols)
+              lua-language-server        # LSP para a linguagem Lua
+              python312Packages.python-lsp-server # LSP para a linguagem Python (base)
+              pyright                    # LSP mais avançado para Python (Microsoft)
+              # rust-analyzer            # LSP para a linguagem Rust (Gerenciado por rustup ou instalado separadamente)
+
+              # Formatters & Linters
+              black                      # Formatador de código Python (muito popular)
+              stylua                     # Formatador de código Lua
+              # rustfmt                  # Formatador de código Rust (Gerenciado por rustup ou instalado separadamente)
+              
+              # ====================================================================
+              # 🔡 FONTES (Crucial para Powerlevel10k)
+              # ====================================================================
+              
+              # Fontes Monospace Padrão
               fira-code
               jetbrains-mono
               hack-font
-              lua-language-server
-              python312Packages.python-lsp-server
-              black
-              pyright
-              #rustfmt
-              stylua
-              rustup 
-              gcc
+
+              # Fontes Patcheadas (Nerd Fonts - Requerido para ícones do Powerlevel10k)
+              nerd-fonts.fira-code
+              nerd-fonts.droid-sans-mono
             ];
+            
           };
         }
       ];
