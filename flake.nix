@@ -38,6 +38,9 @@
           webkitgtk_4_1
           openssl
 
+          # 🚀 CORREÇÃO FINAL: Adicionar libxdo (resolve o erro '-lxdo')
+          xdotool # (xdotool geralmente inclui libxdo)
+
           # Ferramentas de compilação
           pkg-config # Auxilia Rust a encontrar bibliotecas nativas
           gcc # Compilador C/C++
@@ -136,6 +139,9 @@
 
                     # Load Powerlevel10k configuration if it exists
                     [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+                    # 🚀 CORREÇÃO NVIDIA/WEBKIT: Aplicado na sessão Zsh
+                    export WEBKIT_DISABLE_DMABUF_RENDERER=1
                   '';
                 };
 
