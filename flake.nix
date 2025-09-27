@@ -15,66 +15,86 @@
       system = "x86_64-linux";
 
       modules = [
-        # Arquivos essenciais do sistema
         ./configuration.nix
         ./hardware-configuration.nix
 
-        # MÓDULO DE SISTEMA (Flatpak, Unfree, Pacotes Globais)
+        # MÓDULO DE SISTEMA (Configurações Globais)
         ({ pkgs, ... }: {
+          
           nixpkgs.config = {
             allowUnfree = true;
-            allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
-              "android-studio"
-            ];
+            allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "android-studio" ];
             android_sdk.accept_license = true;
           };
 
-          # Habilitar o Flatpak
           services.flatpak.enable = true;
+
+          # [CORRIGIDO] Lista ÚNICA de environment.systemPackages
           environment.systemPackages = with pkgs; [
             flatpak
             xdg-desktop-portal
             kdePackages.xdg-desktop-portal-kde
             xdg-desktop-portal-gtk
+            zsh 
           ];
           
-          # [ADICIONADO] Garante que o Zsh esteja no sistema
-          environment.systemPackages = [ pkgs.zsh ];
+          # 🚀 CORREÇÃO DA ASSERÇÃO: Ativa o Zsh no nível do sistema
+          programs.zsh.enable = true;
 
-          # [OPCIONAL] Define o shell padrão do usuário no sistema
-          users.users.marcelo.shell = pkgs.zsh;
+          # Configuração do Usuário Marcelo no Sistema
+          users.users.marcelo = {
+            isNormalUser = true;
+            extraGroups = [ "wheel" "networkmanager" ];
+            shell = pkgs.zsh; 
+          };
         })
 
         # MÓDULO HOME MANAGER
-        # 1. Importação Simples do Módulo Home Manager
         home-manager.nixosModules.home-manager
         
-        # 2. Configurações Globais e de Usuário do Home Manager
+        # Configurações Globais e de Usuário do Home Manager
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           
           # Configurações Específicas para o usuário 'marcelo'
-          home-manager.users.marcelo = { pkgs, ... }: {
+          home-manager.users.marcelo = { config, pkgs, ... }: 
+          
+          # 🚀 SOLUÇÃO DE ESCOPO: Usa 'let' e 'builtins.toString' para resolver o caminho
+          let
+            p10k = builtins.toString pkgs.zsh-powerlevel10k;
+            zshAutosuggestions = builtins.toString pkgs.zsh-autosuggestions;
+            zshSyntaxHighlighting = builtins.toString pkgs.zsh-syntax-highlighting;
+          in
+          {
             home.stateVersion = "25.05";
             fonts.fontconfig.enable = false;
             
-            # === CONFIGURAÇÃO DO ZSH E POWERLEVEL10K (CORRIGIDA) ===
+            # === CONFIGURAÇÃO DO ZSH E PLUGINS ===
             programs.zsh = {
               enable = true;
+              # Deixa a lista de plugins vazia para evitar o erro de 'submodule'
+              plugins = [ ]; 
               
-              plugins = [
-                { name = "zsh-autosuggestions"; package = pkgs.zsh-autosuggestions; }
-                { name = "zsh-syntax-highlighting"; package = pkgs.zsh-syntax-highlighting; }
-                "git"
-              ];
+              # Carregamento explícito usando as variáveis convertidas para string
+              initExtra = ''
+                # Carrega o plugin de Highlight
+                source ${zshSyntaxHighlighting}/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+                
+                # Carrega o plugin de Autosuggestions
+                source ${zshAutosuggestions}/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+                
+                # Carrega o Powerlevel10k
+                if [[ -f ${p10k}/share/zsh-theme-powerlevel10k/powerlevel10k.zsh ]]; then
+                    source ${p10k}/share/zsh-theme-powerlevel10k/powerlevel10k.zsh
+                fi
+              '';
             };
-
-            # Powerlevel10k (Chave de programa de nível superior)
-            programs.powerlevel10k.enable = true;
             
-            # === PACOTES DE DESENVOLVIMENTO (home.packages) ===
+            # === PACOTES DE DESENVOLVIMENTO ===
             home.packages = with pkgs; [
+              zsh-powerlevel10k # Continua na lista para ser instalado
+              
               python3
               lua
               rustc
@@ -98,7 +118,7 @@
               # LSPs e Formatadores
               lua-language-server
               python312Packages.python-lsp-server
-              black # Formatter de Python
+              black 
               pyright
               rustfmt
               stylua
