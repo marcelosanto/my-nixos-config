@@ -77,12 +77,14 @@
             };
             
             # ✅ CORREÇÃO: Usa o módulo dedicado do Powerlevel10k
-            programs.powerlevel10k.enable = true;
+            #programs.powerlevel10k.enable = true;
             
             # === PACOTES DE DESENVOLVIMENTO ===
             # Removido zsh-powerlevel10k, zsh-autosuggestions e zsh-syntax-highlighting desta lista,
             # pois eles serão instalados pelos módulos programs.zsh e programs.powerlevel10k.
             home.packages = with pkgs; [
+              zsh-theme-powerlevel10k
+              
               python3
               lua
               rustc
