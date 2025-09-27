@@ -93,15 +93,15 @@
               oh-my-zsh
               python3
               lua
-              rustc
-              cargo
+              #rustc
+              #cargo
               jdk17_headless
               android-studio
               vscodium
               zed-editor
               helix
               genymotion
-              rust-analyzer
+              #rust-analyzer
               lldb
               fira-code
               jetbrains-mono
@@ -110,8 +110,10 @@
               python312Packages.python-lsp-server
               black
               pyright
-              rustfmt
+              #rustfmt
               stylua
+              rustup 
+              gcc
             ];
           };
         }
