@@ -145,6 +145,63 @@
                   '';
                 };
 
+                # 1. Instalação: Habilita o Alacritty como um programa
+                programs.alacritty = {
+                  enable = true;
+                  package = pkgs.alacritty; # Garante que está usando o pacote padrão
+
+                  # 2. Configuração: Defina suas opções aqui.
+                  # O Home Manager irá gerar o arquivo de configuração para você.
+                  settings = {
+                    # Configurações de Fontes (usando as Nerd Fonts que você instalou)
+                    font = {
+                      size = 12.0;
+                      normal = {
+                        # Use o nome da fonte exato no sistema (você pode verificar com `fc-list | grep Fira`)
+                        family = "FiraCode Nerd Font";
+                        style = "Regular";
+                      };
+                    };
+
+                    # Configurações de Janela
+                    window = {
+                      dimensions = {
+                        columns = 100;
+                        lines = 30;
+                      };
+                      # Exemplo de Transparência (0.8 = 80% de opacidade)
+                      opacity = 0.9;
+                    };
+
+                    # Cores - use um tema de sua preferência
+                    # Exemplo de um tema simples (substitua pelos seus valores)
+                    colors = {
+                      primary = {
+                        background = "0x1e1e2e";
+                        foreground = "0xd9e0ee";
+                      };
+                      # ...outras configurações de cores (normal, bright, etc.)
+                    };
+
+                    # Keybindings (Atalhos de teclado)
+                    keyboard = {
+                      bindings = [
+                        # Exemplo: Abrir uma nova instância na pasta atual (Ctrl+Shift+Enter)
+                        {
+                          key = "Return";
+                          mods = "Control|Shift";
+                          action = "SpawnNewInstance";
+                        }
+                      ];
+                    };
+
+                    # ...outras configurações (cursor, shell, etc.)
+                  };
+                };
+
+                # 3. Certifique-se de que o fontconfig está habilitado para o Home Manager
+                #fonts.fontconfig.enable = true;
+
                 home.packages = with pkgs; [
                   # ====================================================================
                   # 🐚 SHELL & PROMPT (ZSH)
@@ -162,6 +219,9 @@
 
                   # Framework opcional (pode ser removido se apenas os plugins acima forem usados)
                   oh-my-zsh
+
+                  # ->
+                  #alacritty
 
                   # ====================================================================
                   # 💻 EDITORES & AMBIENTES DE DESENVOLVIMENTO
@@ -222,6 +282,8 @@
                   # Fontes Patcheadas (Nerd Fonts - Requerido para ícones do Powerlevel10k)
                   nerd-fonts.fira-code
                   nerd-fonts.droid-sans-mono
+                  meslo-lgs-nf
+
                 ];
 
               };
