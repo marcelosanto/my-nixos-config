@@ -197,6 +197,8 @@
                   pyright
                   black
                   stylua
+                  # ✅ NOVO: Nix Language Server (resolve o erro no Kate)
+                  nil
 
                   # ====================================================================
                   # 🔡 FONTES

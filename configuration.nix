@@ -101,6 +101,12 @@
     pulse.enable = true;
   };
 
+  # ✅ CORREÇÃO: Adicionar pacotes de suporte ao PipeWire para o ambiente Qt/KDE
+  environment.sessionVariables = {
+    # Garante que o Qt está procurando o backend PipeWire
+    QT_PIPEWIRE_SUPPORT = "1";
+  };
+
   # Configuração NVIDIA
   hardware.graphics.enable = true;
   services.xserver.videoDrivers = [ "nvidia" ];
@@ -120,6 +126,7 @@
       "networkmanager"
       "wheel"
     ];
+    # Mantenha o Kate aqui, mas garanta que ele use os pacotes KDE corretos.
     packages = with pkgs; [
       kdePackages.kate
     ];
@@ -145,7 +152,11 @@
     git
     zsh
     gcc
-    # REMOVIDO zsh-powerlevel10k: Será instalado pelo Home Manager/Flake
+
+    # ✅ NOVO: Adiciona o plugin de multimídia do Qt5 com PipeWire (necessário para a maioria das libs Qt)
+    # Se você notar que o erro ainda aparece, tente descomentar a linha qt6 abaixo.
+    qt5.qtmultimedia.withPipeWire
+    # qt6.qtmultimedia.withPipeWire # Alternativa se o Kate estiver usando Qt6
   ];
 
   # Outros serviços
