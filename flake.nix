@@ -19,68 +19,12 @@
       pkgs = nixpkgs.legacyPackages.${system};
 
       # =================================================================
-      # 🛠️ AMBIENTE DE DESENVOLVIMENTO GTK/RUST (devShell Definição Original)
+      # 🛠️ IMPORTAÇÃO DOS DEVSHELLS (Modularidade)
       # =================================================================
-      devShellRust = pkgs.mkShell {
-        # Dependências de compilação C/Rust (essenciais para GTK e openssl-sys)
-        packages = with pkgs; [
-          # Bibliotecas GTK/Web/Criptografia (para compilação)
-          at-spi2-atk
-          atkmm
-          cairo
-          gdk-pixbuf
-          glib
-          gtk3
-          harfbuzz
-          librsvg
-          libsoup_3
-          pango
-          webkitgtk_4_1
-          openssl
-
-          # 🚀 CORREÇÃO FINAL: Adicionar libxdo (resolve o erro '-lxdo')
-          xdotool # (xdotool geralmente inclui libxdo)
-
-          # 🚀 O AJUSTE PRINCIPAL: Adicionar o wasm-bindgen
-          wasm-bindgen-cli
-
-          # Ferramentas de compilação
-          pkg-config # Auxilia Rust a encontrar bibliotecas nativas
-          gcc # Compilador C/C++
-          rustup # Necessário para gerenciar toolchain Rust no devShell
-          cargo
-        ];
-
-        shellHook = ''
-          echo "Ambiente de desenvolvimento GTK/Rust carregado. Use 'cargo build' ou 'cargo install'."
-        '';
-      };
-
-      # =================================================================
-      # 🐍 AMBIENTE DE DESENVOLVIMENTO PYTHON/POETRY (NOVO devShell)
-      # =================================================================
-      pythonDevShell = pkgs.mkShell {
-        # Define a versão do Python e o Poetry
-        packages = with pkgs; [
-          python312 # Versão específica do Python
-          poetry
-
-          # Ferramentas Python de qualidade de código (disponíveis na shell)
-          black     # Formatador
-          isort     # Ordenador de imports
-          mypy      # Checador de tipo estático
-          pylint    # Linter
-
-          # Ferramenta para gestão de dependências nativas
-          pkg-config
-        ];
-
-        shellHook = ''
-          echo "Ambiente de desenvolvimento Python com Poetry carregado."
-          echo "1. Use 'poetry install' para instalar as dependências do seu projeto."
-          echo "2. Use 'poetry shell' para ativar o ambiente virtual do Poetry."
-        '';
-      };
+      # O devShell Rust/GTK é importado do arquivo default.nix na pasta devShells
+      devShellRust = import ./devShells/default.nix { inherit pkgs; };
+      # O devShell Python/Poetry é importado do arquivo python.nix na pasta devShells
+      pythonDevShell = import ./devShells/python.nix { inherit pkgs; };
 
     in
     {
@@ -322,7 +266,7 @@
       };
 
       # =================================================================
-      # 🚀 DEVSHELLS (ADICIONADO AQUI, NÍVEL SUPERIOR)
+      # 🚀 DEVSHELLS (Carregados a partir dos arquivos .nix)
       # =================================================================
       devShells.${system} = {
         # 'default' aponta para o ambiente Rust/GTK
