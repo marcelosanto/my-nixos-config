@@ -41,6 +41,9 @@
           # 🚀 CORREÇÃO FINAL: Adicionar libxdo (resolve o erro '-lxdo')
           xdotool # (xdotool geralmente inclui libxdo)
 
+           # 🚀 O AJUSTE PRINCIPAL: Adicionar o wasm-bindgen
+          wasm-bindgen-cli
+
           # Ferramentas de compilação
           pkg-config # Auxilia Rust a encontrar bibliotecas nativas
           gcc # Compilador C/C++
