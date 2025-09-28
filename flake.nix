@@ -19,9 +19,9 @@
       pkgs = nixpkgs.legacyPackages.${system};
 
       # =================================================================
-      # 🛠️ AMBIENTE DE DESENVOLVIMENTO GTK/RUST (devShell Definição)
+      # 🛠️ AMBIENTE DE DESENVOLVIMENTO GTK/RUST (devShell Definição Original)
       # =================================================================
-      devShell = pkgs.mkShell {
+      devShellRust = pkgs.mkShell {
         # Dependências de compilação C/Rust (essenciais para GTK e openssl-sys)
         packages = with pkgs; [
           # Bibliotecas GTK/Web/Criptografia (para compilação)
@@ -53,6 +53,32 @@
 
         shellHook = ''
           echo "Ambiente de desenvolvimento GTK/Rust carregado. Use 'cargo build' ou 'cargo install'."
+        '';
+      };
+
+      # =================================================================
+      # 🐍 AMBIENTE DE DESENVOLVIMENTO PYTHON/POETRY (NOVO devShell)
+      # =================================================================
+      pythonDevShell = pkgs.mkShell {
+        # Define a versão do Python e o Poetry
+        packages = with pkgs; [
+          python312 # Versão específica do Python
+          poetry
+
+          # Ferramentas Python de qualidade de código (disponíveis na shell)
+          black     # Formatador
+          isort     # Ordenador de imports
+          mypy      # Checador de tipo estático
+          pylint    # Linter
+
+          # Ferramenta para gestão de dependências nativas
+          pkg-config
+        ];
+
+        shellHook = ''
+          echo "Ambiente de desenvolvimento Python com Poetry carregado."
+          echo "1. Use 'poetry install' para instalar as dependências do seu projeto."
+          echo "2. Use 'poetry shell' para ativar o ambiente virtual do Poetry."
         '';
       };
 
@@ -298,6 +324,15 @@
       # =================================================================
       # 🚀 DEVSHELLS (ADICIONADO AQUI, NÍVEL SUPERIOR)
       # =================================================================
-      devShells.${system}.default = devShell;
+      devShells.${system} = {
+        # 'default' aponta para o ambiente Rust/GTK
+        default = devShellRust;
+
+        # 'rust' é um alias para o ambiente Rust/GTK
+        rust = devShellRust;
+
+        # 'python' aponta para o novo ambiente Python/Poetry
+        python = pythonDevShell;
+      };
     };
 }
