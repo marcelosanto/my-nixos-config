@@ -147,6 +147,22 @@
                         foreground = "0xd9e0ee";
                       };
                     };
+
+                    # ==========================================================
+                    # 🖱️ CONFIGURAÇÃO DE MOUSE PARA COLAR NO BOTÃO DIREITO
+                    # ==========================================================
+                    mouse = {
+                      bindings = [
+                        # Padrão: Colar no clique com o botão direito
+                        # O Alacritty colará o conteúdo do clipboard (Ctrl+C, Ctrl+V)
+                        {
+                          mouse = "Right";
+                          action = "Paste";
+                          mods = "None";
+                        }
+                      ];
+                    };
+
                     keyboard = {
                       bindings = [
                         {
