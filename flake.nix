@@ -18,31 +18,26 @@
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
 
-      # =================================================================
-      # 🛠️ IMPORTAÇÃO DOS DEVSHELLS (Modularidade)
-      # Nota: Esses arquivos (devShells/default.nix e devShells/python.nix) devem existir.
-      # =================================================================
+      # Import devShells for modular development environments
       devShellRust = import ./devShells/default.nix { inherit pkgs; };
       pythonDevShell = import ./devShells/python.nix { inherit pkgs; };
 
     in
     {
-      # =================================================================
-      # 💻 NIXOS CONFIGURATIONS (Configuração do seu sistema)
-      # =================================================================
+      # NixOS system configuration
       nixosConfigurations."nixos" = nixpkgs.lib.nixosSystem {
         inherit system;
 
         modules = [
           ./configuration.nix
-          ./hardware-configuration.nix
+          # Directly import hardware-configuration.nix as a module
+          /etc/nixos/hardware-configuration.nix
 
-          # MÓDULO DE SISTEMA
+          # System module (global packages and configurations)
           (
             { pkgs, ... }:
             {
               nixpkgs.config = {
-                # [REFINAMENTO]: Simplificado para permitir todos os pacotes unfree
                 allowUnfree = true;
                 android_sdk.accept_license = true;
               };
@@ -71,7 +66,7 @@
             }
           )
 
-          # MÓDULO HOME MANAGER
+          # Home Manager module (user-specific configurations)
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
@@ -101,9 +96,7 @@
                       file = "share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh";
                     }
                   ];
-                  # [REFINAMENTO]: Uso de initExtra para comandos de inicialização,
-                  # mantendo a carga de plugins e OMZsh/P10K mais declarativa.
-                  initExtra = ''
+                  initContent = ''
                     # Source Oh My Zsh
                     export ZSH=${pkgs.oh-my-zsh}/share/oh-my-zsh
                     source $ZSH/oh-my-zsh.sh
@@ -114,18 +107,17 @@
                     # Load Powerlevel10k configuration if it exists
                     [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-                    # Variáveis de Correção
+                    # Environment variables for compatibility
                     export WEBKIT_DISABLE_DMABUF_RENDERER=1
                     export GDK_BACKEND="x11"
                   '';
                 };
 
-                # 1. Instalação: Habilita o Alacritty como um programa
+                # Alacritty terminal configuration
                 programs.alacritty = {
                   enable = true;
-                  package = pkgs.alacritty; # Garante que está usando o pacote padrão
+                  package = pkgs.alacritty;
 
-                  # 2. Configuração: Defina suas opções aqui.
                   settings = {
                     font = {
                       size = 12.0;
@@ -148,13 +140,8 @@
                       };
                     };
 
-                    # ==========================================================
-                    # 🖱️ CONFIGURAÇÃO DE MOUSE PARA COLAR NO BOTÃO DIREITO
-                    # ==========================================================
                     mouse = {
                       bindings = [
-                        # Padrão: Colar no clique com o botão direito
-                        # O Alacritty colará o conteúdo do clipboard (Ctrl+C, Ctrl+V)
                         {
                           mouse = "Right";
                           action = "Paste";
@@ -176,18 +163,14 @@
                 };
 
                 home.packages = with pkgs; [
-                  # ====================================================================
-                  # 🐚 SHELL & PROMPT (ZSH)
-                  # ====================================================================
+                  # Shell and prompt (ZSH)
                   rustup
                   zsh-powerlevel10k
                   zsh-autosuggestions
                   zsh-syntax-highlighting
                   oh-my-zsh
 
-                  # ====================================================================
-                  # 💻 EDITORES & AMBIENTES DE DESENVOLVIMENTO
-                  # ====================================================================
+                  # Editors and development environments
                   vscodium
                   zed-editor
                   helix
@@ -196,29 +179,22 @@
                   genymotion
                   lldb
 
-                  # ====================================================================
-                  # 🛠️ TOOLCHAINS & DEPENDÊNCIAS NATIVAS
-                  # ====================================================================
+                  # Toolchains and native dependencies
                   gcc
                   openssl
                   pkg-config
                   dioxus-cli
                   nixfmt
 
-                  # ====================================================================
-                  # 🌐 LSPs & FORMATTERS
-                  # ====================================================================
+                  # LSPs and formatters
                   lua-language-server
                   python312Packages.python-lsp-server
                   pyright
                   black
                   stylua
-                  # ✅ NOVO: Nix Language Server (resolve o erro no Kate)
-                  nil
+                  nil # Nix Language Server
 
-                  # ====================================================================
-                  # 🔡 FONTES
-                  # ====================================================================
+                  # Fonts
                   fira-code
                   jetbrains-mono
                   hack-font
@@ -226,15 +202,12 @@
                   nerd-fonts.droid-sans-mono
                   meslo-lgs-nf
                 ];
-
               };
           }
         ];
       };
 
-      # =================================================================
-      # 🚀 DEVSHELLS (Carregados a partir dos arquivos .nix)
-      # =================================================================
+      # Development shells
       devShells.${system} = {
         default = devShellRust;
         rust = devShellRust;

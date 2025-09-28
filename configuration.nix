@@ -1,7 +1,3 @@
-# Edit this configuration file to define what should be installed on
-# your system. Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
 {
   config,
   pkgs,
@@ -11,36 +7,20 @@
 
 {
   imports = [
-    # Include the results of the hardware scan.
-    ./hardware-configuration.nix
+    # Include the results of the hardware scan (imported via flake.nix)
+    #./hardware-configuration.nix
   ];
 
   # ====================================================================
   # CONFIGURAÇÃO DE HARDWARE E SISTEMA DE ARQUIVOS
   # ====================================================================
 
-  # --- Automaontagem de Disco NTFS ---
-  # UUID do HD de Jogos: 2DBB801B3AC731E7 (NTFS)
-  fileSystems."/mnt/GAMES" = {
-    device = "UUID=2DBB801B3AC731E7";
-    fsType = "ntfs3"; # Usando o driver moderno ntfs3
-
-    # Permissões totais para o usuário marcelo (assumindo UID=1000, GID=100)
-    options = [
-      "defaults"
-      "nofail"
-      "uid=1000" # Substitua pelo seu UID real (id -u marcelo)
-      "gid=100" # Substitua pelo seu GID real (id -g marcelo)
-      "umask=002" # Permite r/w para dono e grupo
-    ];
-  };
-
   # Criação do ponto de montagem com permissões corretas antes da montagem
   systemd.tmpfiles.rules = [
     "d /mnt/GAMES 0775 marcelo users -"
   ];
 
-  # Bootloader.
+  # Bootloader
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sdb";
   boot.loader.grub.useOSProber = true;
@@ -101,9 +81,8 @@
     pulse.enable = true;
   };
 
-  # ✅ CORREÇÃO: Adicionar pacotes de suporte ao PipeWire para o ambiente Qt/KDE
+  # Ensure Qt applications use PipeWire
   environment.sessionVariables = {
-    # Garante que o Qt está procurando o backend PipeWire
     QT_PIPEWIRE_SUPPORT = "1";
   };
 
@@ -126,7 +105,6 @@
       "networkmanager"
       "wheel"
     ];
-    # Mantenha o Kate aqui, mas garanta que ele use os pacotes KDE corretos.
     packages = with pkgs; [
       kdePackages.kate
     ];
@@ -146,17 +124,13 @@
     "flakes"
   ];
 
-  # Lista CORRIGIDA de systemPackages: SÓ FERRAMENTAS GLOBAIS
+  # Lista de systemPackages
   environment.systemPackages = with pkgs; [
     wget
     git
     zsh
     gcc
-
-    # ✅ NOVO: Adiciona o plugin de multimídia do Qt5 com PipeWire (necessário para a maioria das libs Qt)
-    # Se você notar que o erro ainda aparece, tente descomentar a linha qt6 abaixo.
-    qt5.qtmultimedia.withPipeWire
-    # qt6.qtmultimedia.withPipeWire # Alternativa se o Kate estiver usando Qt6
+    qt6.qtmultimedia # Use Qt6 for Plasma 6 compatibility
   ];
 
   # Outros serviços
