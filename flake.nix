@@ -41,7 +41,7 @@
           # 🚀 CORREÇÃO FINAL: Adicionar libxdo (resolve o erro '-lxdo')
           xdotool # (xdotool geralmente inclui libxdo)
 
-           # 🚀 O AJUSTE PRINCIPAL: Adicionar o wasm-bindgen
+          # 🚀 O AJUSTE PRINCIPAL: Adicionar o wasm-bindgen
           wasm-bindgen-cli
 
           # Ferramentas de compilação
@@ -145,6 +145,8 @@
 
                     # 🚀 CORREÇÃO NVIDIA/WEBKIT: Aplicado na sessão Zsh
                     export WEBKIT_DISABLE_DMABUF_RENDERER=1
+                    export WEBKIT_DISABLE_COMPOSITING_MODE = 1;
+                    export GDK_BACKEND="x11";
                   '';
                 };
 
