@@ -20,10 +20,9 @@
 
       # =================================================================
       # 🛠️ IMPORTAÇÃO DOS DEVSHELLS (Modularidade)
+      # Nota: Esses arquivos (devShells/default.nix e devShells/python.nix) devem existir.
       # =================================================================
-      # O devShell Rust/GTK é importado do arquivo default.nix na pasta devShells
       devShellRust = import ./devShells/default.nix { inherit pkgs; };
-      # O devShell Python/Poetry é importado do arquivo python.nix na pasta devShells
       pythonDevShell = import ./devShells/python.nix { inherit pkgs; };
 
     in
@@ -43,8 +42,8 @@
             { pkgs, ... }:
             {
               nixpkgs.config = {
+                # [REFINAMENTO]: Simplificado para permitir todos os pacotes unfree
                 allowUnfree = true;
-                allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "android-studio" ];
                 android_sdk.accept_license = true;
               };
 
@@ -102,7 +101,9 @@
                       file = "share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh";
                     }
                   ];
-                  initContent = ''
+                  # [REFINAMENTO]: Uso de initExtra para comandos de inicialização,
+                  # mantendo a carga de plugins e OMZsh/P10K mais declarativa.
+                  initExtra = ''
                     # Source Oh My Zsh
                     export ZSH=${pkgs.oh-my-zsh}/share/oh-my-zsh
                     source $ZSH/oh-my-zsh.sh
@@ -113,7 +114,7 @@
                     # Load Powerlevel10k configuration if it exists
                     [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-                    # 🚀 CORREÇÃO NVIDIA/WEBKIT: Aplicado na sessão Zsh
+                    # Variáveis de Correção
                     export WEBKIT_DISABLE_DMABUF_RENDERER=1
                     export GDK_BACKEND="x11"
                   '';
@@ -125,42 +126,29 @@
                   package = pkgs.alacritty; # Garante que está usando o pacote padrão
 
                   # 2. Configuração: Defina suas opções aqui.
-                  # O Home Manager irá gerar o arquivo de configuração para você.
                   settings = {
-                    # Configurações de Fontes (usando as Nerd Fonts que você instalou)
                     font = {
                       size = 12.0;
                       normal = {
-                        # Use o nome da fonte exato no sistema (você pode verificar com `fc-list | grep Fira`)
                         family = "FiraCode Nerd Font";
                         style = "Regular";
                       };
                     };
-
-                    # Configurações de Janela
                     window = {
                       dimensions = {
                         columns = 100;
                         lines = 30;
                       };
-                      # Exemplo de Transparência (0.8 = 80% de opacidade)
                       opacity = 0.9;
                     };
-
-                    # Cores - use um tema de sua preferência
-                    # Exemplo de um tema simples (substitua pelos seus valores)
                     colors = {
                       primary = {
                         background = "0x1e1e2e";
                         foreground = "0xd9e0ee";
                       };
-                      # ...outras configurações de cores (normal, bright, etc.)
                     };
-
-                    # Keybindings (Atalhos de teclado)
                     keyboard = {
                       bindings = [
-                        # Exemplo: Abrir uma nova instância na pasta atual (Ctrl+Shift+Enter)
                         {
                           key = "Return";
                           mods = "Control|Shift";
@@ -168,96 +156,57 @@
                         }
                       ];
                     };
-
-                    # ...outras configurações (cursor, shell, etc.)
                   };
                 };
-
-                # 3. Certifique-se de que o fontconfig está habilitado para o Home Manager
-                #fonts.fontconfig.enable = true;
 
                 home.packages = with pkgs; [
                   # ====================================================================
                   # 🐚 SHELL & PROMPT (ZSH)
                   # ====================================================================
-
-                  # Ferramenta principal para gerenciar toolchains Rust (compilador, cargo)
                   rustup
-
-                  # Tema principal do Zsh (requer Nerd Font)
                   zsh-powerlevel10k
-
-                  # Plugins Essenciais para Zsh
-                  zsh-autosuggestions # Sugestões de comandos baseadas no histórico
-                  zsh-syntax-highlighting # Colore comandos digitados para melhor legibilidade
-
-                  # Framework opcional (pode ser removido se apenas os plugins acima forem usados)
+                  zsh-autosuggestions
+                  zsh-syntax-highlighting
                   oh-my-zsh
-
-                  # ->
-                  #alacritty
 
                   # ====================================================================
                   # 💻 EDITORES & AMBIENTES DE DESENVOLVIMENTO
                   # ====================================================================
-
-                  # Editores de Código
                   vscodium
                   zed-editor
                   helix
-
-                  # Plataformas & SDKs
                   jdk17_headless
                   android-studio
                   genymotion
                   lldb
 
                   # ====================================================================
-                  # 🛠️ TOOLCHAINS & DEPENDÊNCIAS NATIVAS (Crucial para cargo/Rust)
+                  # 🛠️ TOOLCHAINS & DEPENDÊNCIAS NATIVAS
                   # ====================================================================
-
-                  # Compilador C/C++ (o rustup gerencia, mas mantemos o gcc para libs C)
                   gcc
-
-                  # Bibliotecas C/C++ (OpenSSL, etc.)
                   openssl
                   pkg-config
-
-                  # Pacotes Rust (Descomentar se não usar 'rustup')
-                  # rustc
-                  # cargo
-
-                  # ✅ NOVO: Adicione o CLI do Dioxus (Instalação declarativa)
                   dioxus-cli
                   nixfmt
 
                   # ====================================================================
                   # 🌐 LSPs & FORMATTERS
                   # ====================================================================
-
-                  # LSPs (Language Server Protocols)
                   lua-language-server
                   python312Packages.python-lsp-server
                   pyright
-
-                  # Formatters & Linters
                   black
                   stylua
 
                   # ====================================================================
                   # 🔡 FONTES
                   # ====================================================================
-
-                  # Fontes Monospace Padrão
                   fira-code
                   jetbrains-mono
                   hack-font
-
-                  # Fontes Patcheadas (Nerd Fonts - Requerido para ícones do Powerlevel10k)
                   nerd-fonts.fira-code
                   nerd-fonts.droid-sans-mono
                   meslo-lgs-nf
-
                 ];
 
               };
@@ -269,13 +218,8 @@
       # 🚀 DEVSHELLS (Carregados a partir dos arquivos .nix)
       # =================================================================
       devShells.${system} = {
-        # 'default' aponta para o ambiente Rust/GTK
         default = devShellRust;
-
-        # 'rust' é um alias para o ambiente Rust/GTK
         rust = devShellRust;
-
-        # 'python' aponta para o novo ambiente Python/Poetry
         python = pythonDevShell;
       };
     };
