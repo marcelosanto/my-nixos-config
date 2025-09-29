@@ -7,20 +7,36 @@
 
 {
   imports = [
-    # Include the results of the hardware scan (imported via flake.nix)
-    #./hardware-configuration.nix
+    # A importação do hardware-configuration.nix é feita via flake.nix
+    # para que possa ser mantida fora do Git.
   ];
 
   # ====================================================================
   # CONFIGURAÇÃO DE HARDWARE E SISTEMA DE ARQUIVOS
   # ====================================================================
 
+  # --- Automaontagem de Disco NTFS (CORREÇÃO DE CONFLITO) ---
+  fileSystems."/mnt/GAMES" = {
+    # O valor do device está em conflito, forçamos o nosso valor
+    device = lib.mkForce "UUID=2DBB801B3AC731E7";
+    fsType = "ntfs3";
+
+    # Forçamos a nossa lista de options para garantir que o uid/gid sejam usados
+    options = lib.mkForce [
+      "defaults"
+      "nofail"
+      "uid=1000"
+      "gid=100"
+      "umask=002"
+    ];
+  };
+
   # Criação do ponto de montagem com permissões corretas antes da montagem
   systemd.tmpfiles.rules = [
     "d /mnt/GAMES 0775 marcelo users -"
   ];
 
-  # Bootloader
+  # Bootloader.
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sdb";
   boot.loader.grub.useOSProber = true;
@@ -81,7 +97,7 @@
     pulse.enable = true;
   };
 
-  # Ensure Qt applications use PipeWire
+  # Garante que o Qt encontre o suporte ao PipeWire (resolve o aviso no Kate)
   environment.sessionVariables = {
     QT_PIPEWIRE_SUPPORT = "1";
   };
@@ -130,7 +146,8 @@
     git
     zsh
     gcc
-    qt6.qtmultimedia # Use Qt6 for Plasma 6 compatibility
+    # Adicionado qt6.qtmultimedia para compatibilidade com Plasma 6 e Kate
+    qt6.qtmultimedia
   ];
 
   # Outros serviços
