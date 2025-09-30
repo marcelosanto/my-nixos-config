@@ -2,20 +2,13 @@
   description = "Configuração do NixOS de Marcelo com Flakes";
 
   inputs = {
-    # NixOS/nixpkgs na versão instável para pacotes mais recentes (necessário para Hyprland)
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
-    # Home Manager
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
-    # NvChad via Flake
     nix4nvchad = {
       url = "github:nix-community/nix4nvchad";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # Hyprland (Flake Oficial)
     hyprland = {
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -36,7 +29,6 @@
       pkgs = nixpkgs.legacyPackages.${system};
 
       # Import devShells for modular development environments
-      # Presume que os arquivos default.nix e python.nix existem
       devShellRust = import ./devShells/default.nix { inherit pkgs; };
       pythonDevShell = import ./devShells/python.nix { inherit pkgs; };
     in
@@ -53,9 +45,11 @@
           (
             { pkgs, ... }:
             {
-              # Garante que o Hyprland e o NvChad estejam disponíveis via overlays
-              # O Hyprland será usado para a configuração do Wayland.
-              # O NvChad será instalado globalmente para o Home Manager o encontrar.
+              nixpkgs.config = {
+                allowUnfree = true;
+                android_sdk.accept_license = true;
+              };
+
               nixpkgs.overlays = [
                 (final: prev: {
                   nvchad = inputs.nix4nvchad.packages.${system}.nvchad;
@@ -63,23 +57,19 @@
                 })
               ];
 
-              nixpkgs.config = {
-                allowUnfree = true;
-                android_sdk.accept_license = true;
-              };
-
-              # Apenas o essencial que precisa ser global/do sistema
               services.flatpak.enable = true;
+
               environment.systemPackages = with pkgs; [
                 flatpak
-                xdg-desktop-portal # Necessário para Wayland e Flatpak
-                kdePackages.xdg-desktop-portal-kde # Opção KDE (pode ser necessário para algumas apps)
-                xdg-desktop-portal-gtk # Opção GTK
-                zsh # Deixa o zsh disponível globalmente
+                xdg-desktop-portal
+                kdePackages.xdg-desktop-portal-kde
+                xdg-desktop-portal-gtk
+                zsh
               ];
+
+              # CORREÇÃO 1: Ativa o módulo ZSH no escopo do sistema
               programs.zsh.enable = true;
 
-              # Configuração do usuário (Marcelo)
               users.users.marcelo = {
                 isNormalUser = true;
                 extraGroups = [
@@ -107,17 +97,15 @@
               }:
               {
                 home.stateVersion = "25.05";
-                fonts.fontconfig.enable = true;
+                fonts.fontconfig.enable = true; # Habilitado para carregar fontes do usuário
 
                 imports = [
-                  # Importa o módulo do nvchad para o Home Manager
                   inputs.nix4nvchad.homeManagerModules.nvchad
                 ];
 
-                # Módulo Hyprland (Wayland Window Manager)
+                # Módulo Hyprland
                 wayland.windowManager.hyprland = {
                   enable = true;
-                  # Usa o pacote do overlay, já definido no bloco do sistema
                   package = pkgs.hyprland;
                   xwayland.enable = true;
                   extraConfig = ''
@@ -175,15 +163,16 @@
                 # Configuração do Waybar
                 programs.waybar = {
                   enable = true;
-                  # O Waybar só precisa do pacote `waybar` no sistema para funcionar,
-                  # e ele já está disponível no nixpkgs (sem necessidade de adicionar aqui)
                   settings = {
                     mainBar = {
                       layer = "top";
                       position = "top";
-                      height = 30;
-                      modules-left = [ "hyprland/workspaces" ];
-                      modules-center = [ "hyprland/window" ];
+                      # Removido 'height = 30' para permitir que o CSS defina a altura via padding
+                      modules-left = [
+                        "hyprland/workspaces"
+                        "hyprland/window"
+                      ]; # Agrupado para estilo de bloco
+                      modules-center = [ ]; # Vazio para centralizar o foco no visual flutuante
                       modules-right = [
                         "pulseaudio"
                         "network"
@@ -235,45 +224,91 @@
                       };
                     };
                   };
+                  # CORREÇÃO 3: Estilo CSS para o efeito de Waybar flutuante e modular
                   style = ''
+                    /* --- Configurações Globais --- */
                     * {
                       font-family: FiraCode Nerd Font;
                       font-size: 13px;
-                      color: #ffffff;
+                      color: #d9e0ee; /* Cor de texto Catppuccin-like */
+                      transition: none;
                     }
+
+                    /* --- Waybar Principal (Barra Flutuante) --- */
                     #waybar {
-                      background: rgba(30, 30, 46, 0.9);
-                      border-bottom: 2px solid rgba(51, 204, 255, 0.5);
+                      background: transparent; /* Fundo transparente para efeito flutuante */
+                      margin: 10px 10px 0 10px; /* Margem para flutuar nos cantos */
+                      border: none;
+                      padding: 0;
+                    }
+
+                    /* --- Estilo dos Contêineres de Módulos (Os Blocos Arredondados) --- */
+                    .modules-left,
+                    .modules-right {
+                      background-color: rgba(30, 30, 46, 0.9); /* Cor de fundo opaca (Catppuccin base) */
+                      border-radius: 10px; /* Cantos arredondados */
+                      padding: 0 5px;
+                    }
+
+                    /* --- Estilo dos Workspaces --- */
+                    #workspaces {
+                        padding: 0;
                     }
                     #workspaces button {
-                      padding: 0 10px;
-                      background: transparent;
-                      color: #ffffff;
+                        padding: 0 8px;
+                        color: #a6e3a1; /* Cor de ícone/texto padrão */
+                        background: transparent;
+                        box-shadow: none;
+                        border: none;
                     }
                     #workspaces button:hover {
-                      background: rgba(0, 255, 153, 0.2);
+                        background: rgba(137, 180, 250, 0.2); /* Cor pastel no hover */
                     }
                     #workspaces button.focused {
-                      background: rgba(51, 204, 255, 0.5);
+                        color: #89b4fa; /* Cor pastel no focado */
+                        border-bottom: 2px solid #89b4fa;
+                        border-radius: 0;
                     }
-                    #window {
-                      padding: 0 10px;
+
+                    /* --- Estilo do Módulo Janela (Para separar do Workspaces) --- */
+                    #hyprland-window {
+                        padding: 0 10px;
+                        background-color: rgba(200, 200, 200, 0.1); 
+                        margin: 0 5px;
+                        border-radius: 8px;
                     }
-                    #pulseaudio, #network, #cpu, #memory, #battery, #clock {
+
+                    #pulseaudio, 
+                    #network, 
+                    #cpu, 
+                    #memory, 
+                    #battery, 
+                    #clock {
+                      /* Padding dentro dos blocos, garante espaçamento interno */
                       padding: 0 10px;
+                      margin: 0;
+                      border-left: 1px solid rgba(205, 214, 244, 0.1); /* Separador sutil entre os módulos */
+                    }
+
+                    /* Remove a linha divisória do primeiro módulo à direita */
+                    #pulseaudio {
+                        border-left: none; 
+                    }
+
+                    /* Remove o background do centro se não estiver em uso */
+                    .modules-center {
+                        background: transparent;
                     }
                   '';
                 };
 
                 # Configuração do Hyprpaper
-                # Uso de home.file para garantir que o arquivo seja criado
                 home.file.".config/hypr/hyprpaper.conf".text = ''
                   preload = /home/marcelo/wallpapers/meu-wallpaper.jpg
                   wallpaper = ,/home/marcelo/wallpapers/meu-wallpaper.jpg
                   splash = false
                 '';
 
-                # Configuração do NvChad
                 programs.nvchad = {
                   enable = true;
                   extraPackages = with pkgs; [
@@ -287,7 +322,6 @@
                     python312Packages.flake8
                     cargo
                   ];
-                  # Corrigido um possível erro de citação em extraPlugins/extraConfig
                   extraPlugins = ''
                     return {
                       {
@@ -389,7 +423,6 @@
                   backup = true;
                 };
 
-                # Configuração do ZSH (agora mais limpa)
                 programs.zsh = {
                   enable = true;
                   oh-my-zsh = {
@@ -397,7 +430,6 @@
                     plugins = [ "git" ];
                   };
                   plugins = [
-                    # O Powerlevel10k é melhor gerenciado como um pacote
                     {
                       name = "powerlevel10k";
                       src = pkgs.zsh-powerlevel10k;
@@ -414,25 +446,19 @@
                       file = "share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh";
                     }
                   ];
-                  # O initContent é simplificado, usando os caminhos do Nix
                   initExtra = ''
-                    # Garante que o powerlevel10k é carregado após o oh-my-zsh
                     source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
                     [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-                    # Variáveis de ambiente para Wayland/Xwayland
                     export WEBKIT_DISABLE_DMABUF_RENDERER=1
                     export GDK_BACKEND="x11"
                     export LC_ALL="C.UTF-8"
                   '';
-                  # Remove o oh-my-zsh e o p10k das configurações de pacote do usuário,
-                  # pois o módulo ZSH do Home Manager cuida disso.
                 };
 
-                # Programas de Usuário
                 programs.alacritty = {
                   enable = true;
-                  package = pkgs.alacritty; # Uso do pacote do nixpkgs
+                  package = pkgs.alacritty;
                   settings = {
                     font = {
                       size = 12.0;
@@ -486,10 +512,8 @@
                   '';
                 };
 
-                # Ativa o Dunst (já adicionado ao exec-once do Hyprland)
                 services.dunst.enable = true;
 
-                # Pacotes de Usuário (Home Manager)
                 home.packages = with pkgs; [
                   rustup
                   tmux
@@ -506,7 +530,7 @@
                   pkg-config
                   dioxus-cli
                   nixfmt
-                  fira-code # Fonte base (já em nerd-fonts abaixo)
+                  fira-code
                   jetbrains-mono
                   hack-font
                   nerd-fonts.fira-code
@@ -515,11 +539,9 @@
                   meslo-lgs-nf
                   discord
                   telegram-desktop
-                  hyprpaper # Necessário para o Hyprland
-                  hyprcursor # Recomendado para o Hyprland
-                  rofi # Rofi para Wayland (chamado no bind do Hyprland)
-                  # flatpak, zsh, oh-my-zsh e Waybar não são mais necessários aqui
-                  # pois já estão sendo gerenciados ou globalmente ou por módulos.
+                  hyprpaper
+                  hyprcursor
+                  rofi # CORREÇÃO 2: Usa 'rofi' que suporta Wayland (substitui rofi-wayland)
                 ];
               };
           }
