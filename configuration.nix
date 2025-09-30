@@ -120,6 +120,7 @@
     extraGroups = [
       "networkmanager"
       "wheel"
+      "adbusers"
     ];
     packages = with pkgs; [
       kdePackages.kate
@@ -134,6 +135,7 @@
   # ====================================================================
 
   programs.firefox.enable = true;
+  programs.adb.enable = true;
 
   nix.settings.experimental-features = [
     "nix-command"

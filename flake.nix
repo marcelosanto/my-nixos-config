@@ -323,6 +323,7 @@
                   helix
                   jdk17_headless
                   android-studio
+                  android-tools
                   genymotion
                   lldb
                   gcc
