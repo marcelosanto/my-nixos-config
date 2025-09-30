@@ -336,6 +336,8 @@
                   nerd-fonts.fira-code
                   nerd-fonts.droid-sans-mono
                   meslo-lgs-nf
+                  discord
+                  telegram-desktop
                 ];
               };
           }
