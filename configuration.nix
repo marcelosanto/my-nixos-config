@@ -72,9 +72,20 @@
     LC_TIME = "pt_BR.UTF-8";
   };
 
+  # Ativa o Hyprland
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+    package = pkgs.hyprland; # Usa a versão do overlay (Hyprland mais recente)
+  };
+
+  # Ativa o SDDM com suporte a Wayland
   services.xserver.enable = true;
   services.displayManager.sddm.enable = true;
-  services.desktopManager.plasma6.enable = true;
+  services.displayManager.sddm.wayland.enable = true;
+
+  # Desativa o Plasma 6 (descomente se quiser manter ambas as sessões)
+  # services.desktopManager.plasma6.enable = true;
 
   services.xserver.xkb = {
     layout = "br";
@@ -100,6 +111,7 @@
   # Garante que o Qt encontre o suporte ao PipeWire (resolve o aviso no Kate)
   environment.sessionVariables = {
     QT_PIPEWIRE_SUPPORT = "1";
+    NIXOS_OZONE_WL = "1"; # Para apps Electron usarem Wayland
   };
 
   # Configuração NVIDIA
@@ -109,6 +121,8 @@
   hardware.nvidia = {
     modesetting.enable = true;
     open = false;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
   programs.nix-ld.enable = true;
@@ -150,6 +164,13 @@
     gcc
     # Adicionado qt6.qtmultimedia para compatibilidade com Plasma 6 e Kate
     qt6.qtmultimedia
+    # Pacotes recomendados para Hyprland
+    waybar
+    rofi
+    wl-clipboard
+    grim
+    slurp
+    xdg-desktop-portal-hyprland
   ];
 
   # Outros serviços
