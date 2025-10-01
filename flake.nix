@@ -39,6 +39,7 @@
 
         modules = [
           ./configuration.nix
+          # CORREÇÃO: Usar caminho relativo para evitar erro 'pure evaluation'
           /etc/nixos/hardware-configuration.nix
 
           # System module (global packages and configurations)
@@ -67,7 +68,6 @@
                 zsh
               ];
 
-              # CORREÇÃO 1: Ativa o módulo ZSH no escopo do sistema
               programs.zsh.enable = true;
 
               users.users.marcelo = {
@@ -97,7 +97,7 @@
               }:
               {
                 home.stateVersion = "25.05";
-                fonts.fontconfig.enable = true; # Habilitado para carregar fontes do usuário
+                fonts.fontconfig.enable = true;
 
                 imports = [
                   inputs.nix4nvchad.homeManagerModules.nvchad
@@ -145,7 +145,7 @@
                     bind = $mainMod, E, exec, alacritty
                     bind = $mainMod, C, exec, firefox
                     bind = $mainMod, M, exit,
-                    bind = $mainMod, SPACE, exec, rofi -show drun
+                    bind = $mainMod, SPACE, exec, rofi -modi drun -show drun # Chamada Rofi com modo
                     bind = $mainMod, T, togglefloating,
                     bind = $mainMod, F, fullscreen,
                     # Movimentação entre workspaces
@@ -167,12 +167,11 @@
                     mainBar = {
                       layer = "top";
                       position = "top";
-                      # Removido 'height = 30' para permitir que o CSS defina a altura via padding
                       modules-left = [
                         "hyprland/workspaces"
                         "hyprland/window"
-                      ]; # Agrupado para estilo de bloco
-                      modules-center = [ ]; # Vazio para centralizar o foco no visual flutuante
+                      ];
+                      modules-center = [ ];
                       modules-right = [
                         "pulseaudio"
                         "network"
@@ -180,6 +179,7 @@
                         "memory"
                         "battery"
                         "clock"
+                        "custom/theme"
                       ];
                       "hyprland/workspaces" = {
                         format = "{name}";
@@ -222,22 +222,30 @@
                       clock = {
                         format = "{:%H:%M %d/%m/%Y}";
                       };
+                      # Módulo de Tema
+                      "custom/theme" = {
+                        format = "🎨";
+                        on-click = "~/.config/hypr/scripts/toggle-theme.sh";
+                        tooltip = "true";
+                        format-tooltip = "Alternar Tema (Requer Rebuild)";
+                        exec-if = "${pkgs.bash}/bin/test -f ~/.config/hypr/scripts/toggle-theme.sh";
+                      };
                     };
                   };
-                  # CORREÇÃO 3: Estilo CSS para o efeito de Waybar flutuante e modular
+                  # ESTILO CSS PARA WAYBAR FLUTUANTE
                   style = ''
-                    /* --- Configurações Globais --- */
+                    /* --- Configurações Globais (Incluindo Nerd Font com Fallback) --- */
                     * {
-                      font-family: FiraCode Nerd Font;
+                      font-family: "FiraCode Nerd Font", "Fira Code", "Symbols Nerd Font", monospace;
                       font-size: 13px;
-                      color: #d9e0ee; /* Cor de texto Catppuccin-like */
+                      color: #d9e0ee;
                       transition: none;
                     }
 
                     /* --- Waybar Principal (Barra Flutuante) --- */
                     #waybar {
-                      background: transparent; /* Fundo transparente para efeito flutuante */
-                      margin: 10px 10px 0 10px; /* Margem para flutuar nos cantos */
+                      background: transparent;
+                      margin: 10px 10px 0 10px;
                       border: none;
                       padding: 0;
                     }
@@ -245,8 +253,8 @@
                     /* --- Estilo dos Contêineres de Módulos (Os Blocos Arredondados) --- */
                     .modules-left,
                     .modules-right {
-                      background-color: rgba(30, 30, 46, 0.9); /* Cor de fundo opaca (Catppuccin base) */
-                      border-radius: 10px; /* Cantos arredondados */
+                      background-color: rgba(30, 30, 46, 0.9);
+                      border-radius: 10px;
                       padding: 0 5px;
                     }
 
@@ -256,16 +264,16 @@
                     }
                     #workspaces button {
                         padding: 0 8px;
-                        color: #a6e3a1; /* Cor de ícone/texto padrão */
+                        color: #a6e3a1;
                         background: transparent;
                         box-shadow: none;
                         border: none;
                     }
                     #workspaces button:hover {
-                        background: rgba(137, 180, 250, 0.2); /* Cor pastel no hover */
+                        background: rgba(137, 180, 250, 0.2);
                     }
                     #workspaces button.focused {
-                        color: #89b4fa; /* Cor pastel no focado */
+                        color: #89b4fa;
                         border-bottom: 2px solid #89b4fa;
                         border-radius: 0;
                     }
@@ -283,11 +291,11 @@
                     #cpu, 
                     #memory, 
                     #battery, 
-                    #clock {
-                      /* Padding dentro dos blocos, garante espaçamento interno */
+                    #clock,
+                    #custom-theme {
                       padding: 0 10px;
                       margin: 0;
-                      border-left: 1px solid rgba(205, 214, 244, 0.1); /* Separador sutil entre os módulos */
+                      border-left: 1px solid rgba(205, 214, 244, 0.1);
                     }
 
                     /* Remove a linha divisória do primeiro módulo à direita */
@@ -302,12 +310,92 @@
                   '';
                 };
 
+                # Script para Alternar Temas (A Waybar executa isso)
+                home.file.".config/hypr/scripts/toggle-theme.sh" = {
+                  executable = true;
+                  text = ''
+                    #!/usr/bin/env bash
+
+                    # Arquivo de estado para rastrear o tema atual (dark ou light)
+                    THEME_STATE_FILE="$HOME/.config/hypr/theme_state.txt"
+
+                    # Alterna o estado (dark <-> light)
+                    if [ ! -f "$THEME_STATE_FILE" ] || [ "$(cat "$THEME_STATE_FILE")" = "light" ]; then
+                        echo "dark" > "$THEME_STATE_FILE"
+                        NEW_THEME="Dark"
+                    else
+                        echo "light" > "$THEME_STATE_FILE"
+                        NEW_THEME="Light"
+                    fi
+
+                    # Notifica o usuário e sugere a reconstrução
+                    ${pkgs.dunst}/bin/dunstify "✨ Tema Alterado para $NEW_THEME!" "Execute 'sudo nixos-rebuild switch --flake .#nixos' (em /etc/nixos) para aplicar o novo esquema de cores." -t 10000
+                  '';
+                };
+
                 # Configuração do Hyprpaper
                 home.file.".config/hypr/hyprpaper.conf".text = ''
                   preload = /home/marcelo/wallpapers/meu-wallpaper.jpg
                   wallpaper = ,/home/marcelo/wallpapers/meu-wallpaper.jpg
                   splash = false
                 '';
+
+                # CONFIGURAÇÃO DE TEMA ROFI (COMPACTO E ARREDONDADO)
+                programs.rofi = {
+                  enable = true;
+                  theme = {
+                    "*" = {
+                      font = "FiraCode Nerd Font 10";
+                      background-color = "rgba(30, 30, 46, 0.95)";
+                      text-color = "#cdd6f4";
+                      border-color = "#89b4fa";
+
+                      # Estilo da Janela
+                      border = 0;
+                      border-radius = 20; # Cantos mais arredondados
+                      padding = 0;
+                      width = 300; # Largura reduzida
+                    };
+                    "window" = {
+                      location = 0;
+                      anchor = 0;
+                      padding = 15; # Padding maior na janela para afastar
+                    };
+                    "inputbar" = {
+                      children = [
+                        "prompt"
+                        "entry"
+                      ];
+                      spacing = 10;
+                      padding = 10;
+                      border-radius = 15;
+                      background-color = "#45475a";
+                    };
+                    "listview" = {
+                      columns = 1;
+                      lines = 7; # Limita as linhas
+                      spacing = 5;
+                      cycle = false;
+                      dynamic = true;
+                      scrollbar = false;
+                      padding = 5;
+                    };
+                    "element" = {
+                      padding = 10;
+                      spacing = 10;
+                      border-radius = 12;
+                      background-color = "transparent";
+                    };
+                    "element selected" = {
+                      background-color = "#89b4fa";
+                      text-color = "#1e1e2e";
+                      border-radius = 12;
+                    };
+                    "entry" = {
+                      placeholder = "Pesquisar Aplicativos...";
+                    };
+                  };
+                };
 
                 programs.nvchad = {
                   enable = true;
@@ -541,7 +629,7 @@
                   telegram-desktop
                   hyprpaper
                   hyprcursor
-                  rofi # CORREÇÃO 2: Usa 'rofi' que suporta Wayland (substitui rofi-wayland)
+                  rofi
                 ];
               };
           }
